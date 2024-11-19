@@ -6,7 +6,7 @@ Compression benchmark for FASTA files using both general-purpose and DNA-specifi
 To download the benchmark in a Linux system, please run:
 <pre>
 git clone https://github.com/cobilab/FABench
-cd FA_benchmark/src/
+cd FABench/src/
 chmod +x *.sh
 </pre>
 
