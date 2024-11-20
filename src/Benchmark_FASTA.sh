@@ -400,6 +400,39 @@ function RUN_ZSTD {
 #
 # ==============================================================================
 #
+function RUN_MBGC {
+  #
+  IN_FILE="$1";
+  C_COMMAND="$2";
+  D_COMMAND="$3";
+  NAME="$4";
+  #
+  /bin/time -f "TIME\t%e\tMEM\t%M" $C_COMMAND -i $IN_FILE MBGC-OUT.mbgc 1> garbage-MBGC 2> mbgc_tmp_report.txt;
+  cat mbgc_tmp_report.txt | grep "TIME" | tr '.' ',' | awk '{ printf $2/60"\t"$4/1024/1024"\n" }' > c_time_mem.txt;
+  #
+  BYTES=`ls -la MBGC-OUT.mbgc | awk '{ print $5 }'`;
+  #
+  /bin/time -f "TIME\t%e\tMEM\t%M" $D_COMMAND MBGC-OUT.mbgc MBGC-D-OUT 1> garbage-MBGC 2> mbgc_tmp_report.txt
+  cat mbgc_tmp_report.txt | grep "TIME" | tr '.' ',' | awk '{ printf $2/60"\t"$4/1024/1024"\n" }' > d_time_mem.txt;
+  #
+  cmp MBGC-D-OUT/$IN_FILE $IN_FILE > cmp.txt;
+  #
+  C_TIME=`cat c_time_mem.txt | awk '{ print $1}'`;
+  C_MEME=`cat c_time_mem.txt | awk '{ print $2}'`;
+  D_TIME=`cat d_time_mem.txt | awk '{ print $1}'`;
+  D_MEME=`cat d_time_mem.txt | awk '{ print $2}'`;
+  VERIFY="0";
+  CMP_SIZE=`ls -la cmp.txt | awk '{ print $5}'`
+  if [[ "$CMP_SIZE" != "0" ]]; then CMP_SIZE="1"; fi
+  #
+  printf "$NAME\t$BYTES\t$C_TIME\t$C_MEME\t$D_TIME\t$D_MEME\t$CMP_SIZE\t$5\n";
+  #
+  rm -fr MBGC-OUT.mbgc MBGC-D-OUT garbage-MBGC;
+  #
+  }
+#
+# ==============================================================================
+#
 FILE="$1";
 FILE_NAME="$1";
 #
@@ -473,6 +506,13 @@ RUN_LEON "$FILE" "./leon -nb-cores 1 -lossless -c -file " "./leon -nb-cores 1 -d
 #
 echo "Running zstandard ...";
 RUN_ZSTD "$FILE" "zstd -19" "zstd -d" "Zstandard" "35" >> data.csv;
+#
+echo "Running MBGC ...";
+for((x=1;x<=1;++x)); #UP TO LEVEL 3
+  do
+  echo "Level $x...";
+  RUN_MBGC "$FILE" "./mbgc c -m $x -t 1 " "./mbgc d -t 1 " "MBGC" "24" >> data.csv;
+  done
 #
 printf "PROGRAM\tC_BYTES\tC_TIME (m)\tC_MEM (GB)\tD_TIME (m)\tD_MEM (GB)\tDIFF\tRUN\n";
 cat data.csv;

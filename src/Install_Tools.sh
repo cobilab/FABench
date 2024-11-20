@@ -153,6 +153,21 @@ sh INSTALL
 cp leon ..
 cd ..
 #
+# MBGC -------------------------------------------------------------------------
+#
+echo -e "\e[34m[Installer]\e[32m Installing MBGC ...\e[0m";
+rm -fr mbgc
+git clone https://github.com/kowallus/mbgc.git
+cd mbgc
+mkdir build
+cd build
+cmake ..
+make mbgc
+cp mbgc ../../MBGC
+cd ../../
+rm -fr mbgc
+mv MBGC mbgc
+#
 # ------------------------------------------------------------------------------
 #
 # ==============================================================================
@@ -175,5 +190,6 @@ PROGRAM_EXISTS "./paq8l";
 PROGRAM_EXISTS "bzip2";
 PROGRAM_EXISTS "./leon";
 PROGRAM_EXISTS "zstd";
+PROGRAM_EXISTS "./mbgc";
 #
 # ==============================================================================
