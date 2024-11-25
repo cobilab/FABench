@@ -72,7 +72,7 @@ def add_vals_to_dict(name_tool, max_comp, max_decomp, avg_num_bytes):
 
 def update_vars(max_comp, max_decomp, num_bytes, time, count, list_vals):
 	max_comp = max(max_comp, float(list_vals[3]))
-	max_decomp = max(max_decomp, float(list_vals[4]))
+	max_decomp = max(max_decomp, float(list_vals[5]))
 	num_bytes += float(list_vals[1])
 	time += float(list_vals[2])
 	count += 1
