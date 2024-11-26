@@ -21,6 +21,8 @@ def calc_weissman(path, standard_tool, alpha):
 	#For each of the files created in the last step (with the average compression size)
 	for file in os.listdir(path):
 
+		first_line = True
+
 		file_access = open(path + "/" + file, "r")
 		file_content = file_access.readlines()
 
@@ -31,29 +33,37 @@ def calc_weissman(path, standard_tool, alpha):
 
 		#Get the standard tool information
 		for i in file_content:
-			if i.startswith(standard_tool + "\t"):
-				values = i.split("\n")[0].split("\t")
 
-				number_bytes_standard = float(values[3])
-				time_standard = float(values[4]) * 60 #convert to seconds (to avoid log(>1))
+			if first_line == False:
+				if i.startswith(standard_tool + "\t"):
+					values = i.split("\n")[0].split("\t")
 
+					number_bytes_standard = float(values[3])
+					time_standard = float(values[4]) * 60 #convert to seconds (to avoid log(>1))
+			else:
+				first_line = False
+
+		first_line = True
 
 		#For all tools, do calculations and write to file
 		for i in file_content:
-			values = i.split("\n")[0].split("\t")
 
-			name_tool = values[0]
-			compressed_size_tool = float(values[3])
-			time_tool = float(values[4]) * 60 #convert to seconds (to avoid log(>1))
+			if first_line == False:
+				values = i.split("\n")[0].split("\t")
 
-			compression_ratio = uncompressed_size / compressed_size_tool
-			compression_ratio_standard = uncompressed_size / number_bytes_standard
+				name_tool = values[0]
+				compressed_size_tool = float(values[3])
+				time_tool = float(values[4]) * 60 #convert to seconds (to avoid log(>1))
 
-			weissman_score = alpha * (compression_ratio / compression_ratio_standard) * (math.log(time_standard) / math.log(time_tool))
+				compression_ratio = uncompressed_size / compressed_size_tool
+				compression_ratio_standard = uncompressed_size / number_bytes_standard
 
-			#"File\tName tool\tWeissman score\tCompression ratio\tCompressed size\tTime\tSize uncompressed file\tTime ratio\n"
-			file_res.write(file + "\t" + name_tool + "\t" + str(round(weissman_score, num_cases)) + "\t" + str(round(compression_ratio, num_cases)) + "\t" + str(round(compressed_size_tool, num_cases)) + "\t" + str(round(time_tool, num_cases)) + "\t" + str(round(uncompressed_size, num_cases))  + "\t" + str(round(time_standard/time_tool, num_cases)) + "\n")
+				weissman_score = alpha * (compression_ratio / compression_ratio_standard) * (math.log(time_standard) / math.log(time_tool))
 
+				#"File\tName tool\tWeissman score\tCompression ratio\tCompressed size\tTime\tSize uncompressed file\tTime ratio\n"
+				file_res.write(file + "\t" + name_tool + "\t" + str(round(weissman_score, num_cases)) + "\t" + str(round(compression_ratio, num_cases)) + "\t" + str(round(compressed_size_tool, num_cases)) + "\t" + str(round(time_tool, num_cases)) + "\t" + str(round(uncompressed_size, num_cases))  + "\t" + str(round(time_standard/time_tool, num_cases)) + "\n")
+			else:
+				first_line = False
 
 
 def add_vals_to_dict(name_tool, max_comp, max_decomp, avg_num_bytes):
@@ -112,6 +122,7 @@ def import_files_in_dir(path):
 		file = open(file_name, "r")
 
 		tex_file = open("tables_results_" + file_name + ".tsv", "w")
+		tex_file.write("Name tool\tMax_comp_mem\tMax_decomp_mem\tAvg_bytes\tAvg_time\tNumber_executions\n")
 
 		for line in file:
 
@@ -147,6 +158,7 @@ def import_files_in_dir(path):
 		shutil.move("tables_results_" + file_name + ".tsv", path + "/tables_results_" + file_name + ".tsv")
 
 	file_results = open("tables_results_total.tsv", "w")
+	file_results.write("Name tool\tMax_comp_mem\tMax_decomp_mem\tAverage_bytes\n")
 
 	#Calculate the max compression and decompression memory and the average compression size for each tool (all datasets)
 	for i in info_tools.keys():
