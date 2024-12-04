@@ -5,17 +5,17 @@ import shutil
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import matplotlib.pyplot as  plt
+import matplotlib.pyplot as plt
 
 info_weissman = dict()
 info_tools = dict()
 
 def calc_weissman(path, standard_tool, alpha):
 
-	num_cases = 3
+	num_cases = 3 #Number of round cases in results
 
 	#Create the result file and write the first line
-	file_res = open("new_metrics.tsv", "w")
+	file_res = open("avg_results_weissman_comp_ratio.tsv", "w")
 	file_res.write("File\tName tool\tWeissman score\tCompression ratio\tCompressed size\tTime\tSize uncompressed file\tTime ratio\n")
 
 	#For each of the files created in the last step (with the average compression size)
@@ -36,6 +36,8 @@ def calc_weissman(path, standard_tool, alpha):
 
 			if first_line == False:
 				if i.startswith(standard_tool + "\t"):
+
+					#If it isn't a header and is the standard tool, get values necessarry to calculate the weissman score
 					values = i.split("\n")[0].split("\t")
 
 					number_bytes_standard = float(values[3])
@@ -58,9 +60,9 @@ def calc_weissman(path, standard_tool, alpha):
 				compression_ratio = uncompressed_size / compressed_size_tool
 				compression_ratio_standard = uncompressed_size / number_bytes_standard
 
-				weissman_score = alpha * (compression_ratio / compression_ratio_standard) * (math.log(time_standard) / math.log(time_tool))
+				weissman_score = alpha * (compression_ratio / compression_ratio_standard) * (math.log10(time_standard) / math.log10(time_tool))
 
-				#"File\tName tool\tWeissman score\tCompression ratio\tCompressed size\tTime\tSize uncompressed file\tTime ratio\n"
+				#"File\tName tool\tWeissman score\tCompression ratio\tCompressed size\tTime\tSize uncompressed file\tTime ratio(time_standard/time_tool)\n"
 				file_res.write(file + "\t" + name_tool + "\t" + str(round(weissman_score, num_cases)) + "\t" + str(round(compression_ratio, num_cases)) + "\t" + str(round(compressed_size_tool, num_cases)) + "\t" + str(round(time_tool, num_cases)) + "\t" + str(round(uncompressed_size, num_cases))  + "\t" + str(round(time_standard/time_tool, num_cases)) + "\n")
 			else:
 				first_line = False
@@ -113,11 +115,13 @@ def import_files_in_dir(path):
 	count = 0
 
 	csv_files = []
+
+	# Select raw data files
 	for file in os.listdir():
 		if file.endswith(".csv"):
 			csv_files.append(os.path.join("", file))
 
-	#Calculate the max compression and decompression memory and the average compression size for each tool in each dataset
+	# Calculate the max compression and decompression memory and the average compression size for each tool in each dataset
 	for file_name in csv_files:
 		file = open(file_name, "r")
 
@@ -127,19 +131,19 @@ def import_files_in_dir(path):
 		for line in file:
 
 			line = line.strip("\n")
-			list_vals = line.split("\t") #get the data in an array
+			list_vals = line.split("\t") # Get the information of a row in an array
 
-			curr_tool = list_vals[0] #name tool
+			curr_tool = list_vals[0] #Check name of tool in current row
 
-			if name_tool == "" or curr_tool == name_tool: #first tool or continuation
+			if name_tool == "" or curr_tool == name_tool: #First tool in the file or continuation of the results
 
 				if name_tool == "":
 					name_tool = curr_tool
 
-				#update info
+				#Update info
 				max_comp, max_decomp, num_bytes, time, count = update_vars(max_comp, max_decomp, num_bytes, time, count, list_vals)
 
-			else: #new tool; reset
+			else: #New tool is seen; write results and reset variables
 
 				max_comp, max_decomp, num_bytes, time, count = write_and_reset_vars(tex_file, name_tool, max_comp, max_decomp, num_bytes, time, count)
 				max_comp, max_decomp, num_bytes, time, count = update_vars(max_comp, max_decomp, num_bytes, time, count, list_vals)
@@ -152,15 +156,15 @@ def import_files_in_dir(path):
 		name_tool = ""
 
 
-		#Close result file and move to directory results
+		#Close result file and move results to different directory
 		file.close()
 		tex_file.close()
 		shutil.move("tables_results_" + file_name + ".tsv", path + "/tables_results_" + file_name + ".tsv")
 
-	file_results = open("tables_results_total.tsv", "w")
+	file_results = open("plot_data_mem_comp_size.tsv", "w")
 	file_results.write("Name tool\tMax_comp_mem\tMax_decomp_mem\tAverage_bytes\n")
 
-	#Calculate the max compression and decompression memory and the average compression size for each tool (all datasets)
+	#Get the max compression and decompression memory and the average compression size for each tool (all datasets)
 	for i in info_tools.keys():
 		infos = info_tools[i]
 		file_results.write(i + "\t" + str(infos[0]) + "\t" + str(infos[1]) + "\t" + str(infos[2]) + "\n")
@@ -194,7 +198,7 @@ def check_correlations():
 
 if __name__ == '__main__':
 
-	directory_path = "results"
+	directory_path = "results_avg"
 	tool_weissman = "BZIP2"
 
 	if not os.path.exists(directory_path):
@@ -206,5 +210,11 @@ if __name__ == '__main__':
 
 		calc_weissman(directory_path, tool_weissman, i/10)'''
 	calc_weissman(directory_path, tool_weissman, 1)
-	
+
+	if not os.path.exists(directory_path + "/final_tsv"):
+		os.makedirs(directory_path + "/final_tsv")
+
+	shutil.move("avg_results_weissman_comp_ratio.tsv", directory_path + "/final_tsv/avg_results_weissman_comp_ratio.tsv")
+	shutil.move("plot_data_mem_comp_size.tsv", directory_path + "/final_tsv/plot_data_mem_comp_size.tsv")
+
 	#check_correlations()
