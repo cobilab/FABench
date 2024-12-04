@@ -77,9 +77,9 @@ def add_vals_to_dict(name_tool, max_comp, max_decomp, avg_num_bytes):
 
 		new_val_max_comp = max(infos[0], max_comp)
 		new_val_max_decomp = max(infos[1], max_decomp)
-		new_avg_num_bytes = infos[2] + avg_num_bytes
+		new_num_bytes = infos[2] + avg_num_bytes
 
-		info_tools[name_tool] = [new_val_max_comp, new_val_max_decomp, new_avg_num_bytes]
+		info_tools[name_tool] = [new_val_max_comp, new_val_max_decomp, new_num_bytes]
 
 
 def update_vars(max_comp, max_decomp, num_bytes, time, count, list_vals):
@@ -162,12 +162,12 @@ def import_files_in_dir(path):
 		shutil.move("tables_results_" + file_name + ".tsv", path + "/tables_results_" + file_name + ".tsv")
 
 	file_results = open("plot_data_mem_comp_size.tsv", "w")
-	file_results.write("Name tool\tMax_comp_mem\tMax_decomp_mem\tAverage_bytes\n")
+	file_results.write("Name tool\tMax_comp_mem\tMax_decomp_mem\tSum_of_avg_comp_size\n")
 
 	#Get the max compression and decompression memory and the average compression size for each tool (all datasets)
 	for i in info_tools.keys():
 		infos = info_tools[i]
-		file_results.write(i + "\t" + str(infos[0]) + "\t" + str(infos[1]) + "\t" + str(infos[2]) + "\n")
+		file_results.write(i + "\t" + str(infos[0]) + "\t" + str(infos[1]) + "\t" + str(round(infos[2],3)) + "\n")
 
 	file_results.close()
 
@@ -206,9 +206,6 @@ if __name__ == '__main__':
 
 	import_files_in_dir(directory_path) #calculates the basic metrics
 
-	'''for i in range(1,11):
-
-		calc_weissman(directory_path, tool_weissman, i/10)'''
 	calc_weissman(directory_path, tool_weissman, 1)
 
 	if not os.path.exists(directory_path + "/final_tsv"):

@@ -73,30 +73,28 @@ def calc_weissman(standard_tool, alpha):
 		# For all tools, do calculations and write to file
 		for i in file_content:
 
-			if first_line == False:
-				values = i.split("\n")[0].split("\t")
+			values = i.split("\n")[0].split("\t")
 
-				name_tool = values[0]
-				compressed_size_tool = float(values[1])
-				time_tool = float(values[2]) * 60 # Convert to seconds (to avoid log(>1))
+			name_tool = values[0]
+			compressed_size_tool = float(values[1])
+			time_tool = float(values[2]) * 60 # Convert to seconds (to avoid log(>1))
 
-				compression_ratio = uncompressed_size / compressed_size_tool
-				compression_ratio_standard = uncompressed_size / number_bytes_standard
+			compression_ratio = uncompressed_size / compressed_size_tool
+			compression_ratio_standard = uncompressed_size / number_bytes_standard
 
-				weissman_score = alpha * (compression_ratio / compression_ratio_standard) * (math.log10(time_standard) / math.log10(time_tool))
+			weissman_score = alpha * (compression_ratio / compression_ratio_standard) * (math.log10(time_standard) / math.log10(time_tool))
 
-				# "File\tName tool\tWeissman score\tCompression ratio\tCompressed size\tTime\tSize uncompressed file\tTime ratio(time_standard/time_tool)\n"
-				file_res.write(file + "\t" + name_tool + "\t" + str(round(weissman_score, num_cases)) + "\t" + str(
-					round(compression_ratio, num_cases)) + "\t" + str(
-					round(compressed_size_tool, num_cases)) + "\t" + str(round(time_tool, num_cases)) + "\t" + str(
-					round(uncompressed_size, num_cases)) + "\t" + str(
-					round(time_standard / time_tool, num_cases)) + "\n")
+			# "File\tName tool\tWeissman score\tCompression ratio\tCompressed size\tTime\tSize uncompressed file\tTime ratio(time_standard/time_tool)\n"
+			file_res.write(file + "\t" + name_tool + "\t" + str(round(weissman_score, num_cases)) + "\t" + str(
+				round(compression_ratio, num_cases)) + "\t" + str(
+				round(compressed_size_tool, num_cases)) + "\t" + str(round(time_tool, num_cases)) + "\t" + str(
+				round(uncompressed_size, num_cases)) + "\t" + str(
+				round(time_standard / time_tool, num_cases)) + "\n")
 
-				#Get best values
-				update_best_val_dictionary(file, name_tool, weissman_score, compression_ratio)
+			#Get best values
+			update_best_val_dictionary(file, name_tool, weissman_score, compression_ratio)
 
-			else:
-				first_line = False
+
 
 	file_results = open("best_weissman_comp_ratios.tsv", "w")
 	file_results.write("File\tName tool\tBest weissman score\tBest compression ratio\n")
