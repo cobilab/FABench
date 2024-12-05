@@ -10,21 +10,28 @@ import matplotlib.pyplot as  plt
 best_values = dict()
 
 
-def update_best_val_dictionary(file, name_tool, weissman_score, compression_ratio):
+def update_best_val_dictionary(file, name_tool, weissman_score, compression_ratio, line_used):
+
+	line_used = line_used.split("\n")[0].split("\t")[8]
+
 
 	if name_tool + "_" + file not in best_values.keys(): #First time the tool is seen
-		best_values[name_tool + "_" + file] = [weissman_score, compression_ratio]
+		best_values[name_tool + "_" + file] = [weissman_score, compression_ratio, line_used, line_used]
 
 	else: #Tool has a position in the dictionary; update pos
 		new_weissman = float(best_values[name_tool + "_" + file][0])
 		new_compression_ratio = float(best_values[name_tool + "_" + file][1])
+		line_weissman = best_values[name_tool + "_" + file][2]
+		line_compression_ratio = best_values[name_tool + "_" + file][3]
 
-		if best_values[name_tool + "_" + file][0] < float(weissman_score):
+		if float(best_values[name_tool + "_" + file][0]) < float(weissman_score):
 			new_weissman = weissman_score
-		if best_values[name_tool + "_" + file][1] < float(compression_ratio):
+			line_weissman = line_used
+		if float(best_values[name_tool + "_" + file][1]) < float(compression_ratio):
 			new_compression_ratio = compression_ratio
+			line_compression_ratio = line_used
 
-		best_values[name_tool + "_" + file] = [new_weissman, new_compression_ratio]
+		best_values[name_tool + "_" + file] = [float(new_weissman), float(new_compression_ratio), line_weissman, line_compression_ratio]
 
 
 def get_std_values(file_content, standard_tool):
@@ -92,17 +99,21 @@ def calc_weissman(standard_tool, alpha):
 				round(time_standard / time_tool, num_cases)) + "\n")
 
 			#Get best values
-			update_best_val_dictionary(file, name_tool, weissman_score, compression_ratio)
+			update_best_val_dictionary(file, name_tool, weissman_score, compression_ratio, i)
 
 
 
 	file_results = open("best_weissman_comp_ratios.tsv", "w")
-	file_results.write("File\tName tool\tBest weissman score\tBest compression ratio\n")
+	file_results.write("File\tName tool\tBest weissman score\tBest compression ratio\tBest compression ratio\tBest command weissman\n")
 
 	# Calculate the max compression and decompression memory and the average compression size for each tool (all datasets)
 	for i in best_values.keys():
 		infos = best_values[i]
-		file_results.write(i.split("_")[2] + "\t" + i.split("_")[0] + "\t" + str(infos[0]) + "\t" + str(infos[1]) + "\n")
+
+		print( i.split("_")[0], infos, i)
+
+
+		file_results.write(i.split("_")[2] + "\t" + i.split("_")[0] + "\t" + str(round(infos[0], 3)) + "\t" + str(round(infos[1], 3)) + "\t" + infos[2] + "\t" + infos[3] + "\n")
 
 	file_results.close()
 
